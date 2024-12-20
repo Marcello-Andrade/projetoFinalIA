@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Clima</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #6dd5fa, #2980b9);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        form {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #2980b9;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1c598a;
+        }
+
+        #resultado {
+            margin-top: 90px;
+            font-size: 1.2em;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            border-radius: 50px;
+            display: none; /* Oculta inicialmente */
+        }
+
+        /* Previsão estendida */
+        .previsao {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .previsao .dia {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .previsao .dia img {
+            width: 50px;
+            height: 50px;
+            margin: 5px 0;
+        }
+    </style>
+    <script>
+        async function consultarClima(event) {
+            event.preventDefault();
+            const cidade = document.getElementById("cidade").value;
+
+            const response = await fetch("/clima", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cidade })
+            });
+
+            const data = await response.json();
+            const resultado = document.getElementById("resultado");
+
+            if (data.resposta) {
+                resultado.innerHTML = `
+                    <img src="http://openweathermap.org/img/wn/${data.icon}@2x.png" alt="Clima">
+                    <p>${data.resposta}</p>
+                    <div class="previsao">
+                        ${data.previsao
+                            .map(dia => `
+                                <div class="dia">
+                                    <p>${dia.data}</p>
+                                    <img src="http://openweathermap.org/img/wn/${dia.icon}@2x.png" alt="${dia.descricao}, BASE_API_KEY">
+                                    <p>${dia.descricao}</p>
+                                    <p>Máx: ${dia.temp_max}°C</p>
+                                    <p>Mín: ${dia.temp_min}°C</p>
+                                </div>
+                            `)
+                            .join("")}
+                    </div>
+                `;
+                resultado.style.display = "block";
+            } else {
+                resultado.innerHTML = `<p>${data.erro}</p>`;
+                resultado.style.display = "block";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Consulta de Clima</h1>
+    <form onsubmit="consultarClima(event)">
+        <label for="cidade">Digite o nome do local abaixo</label>
+        <input type="text" id="cidade" name="cidade" required>
+        <button type="submit">Consultar</button>
+    </form>
+    <div id="resultado"></div>
+</body>
+</html>
